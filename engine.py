@@ -1,15 +1,13 @@
 import math
 import sys
 import time
-
 import torch
 import torchvision.models.detection.mask_rcnn
 import utils
 from coco_eval import CocoEvaluator
 from coco_utils import get_coco_api_from_dataset
-
 from torch.utils.tensorboard import SummaryWriter
-writer = SummaryWriter("runs/4/")
+writer = SummaryWriter("tboard/")
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
@@ -44,9 +42,9 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
             print(f"Loss is {loss_value}, stopping training")
             print(loss_dict_reduced)
             sys.exit(1)
-            
-        writer.add_scalar("Loss/Epoch", losses, epoch-epoch+1)
-        
+
+        writer.add_scalar("Loss/Epoch", losses, epoch + 1)
+
         optimizer.zero_grad()
         if scaler is not None:
             scaler.scale(losses).backward()
@@ -61,9 +59,8 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
 
         metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
-        
-        writer.flush()
 
+    writer.flush()
     return metric_logger
 
 

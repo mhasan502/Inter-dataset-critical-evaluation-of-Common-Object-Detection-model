@@ -4,7 +4,7 @@ import os
 import torch
 import torch.utils.data
 import torchvision
-import torchvision.transforms as T
+import transforms as T
 from pycocotools import mask as coco_mask
 from pycocotools.coco import COCO
 
@@ -179,7 +179,7 @@ def convert_to_coco_api(ds):
             ann["bbox"] = bboxes[i]
             ann["category_id"] = labels[i]
             categories.add(labels[i])
-            ann["area"] = areas          # It was changed from ann["area"] = areas[i]
+            ann["area"] = areas[i]
             ann["iscrowd"] = iscrowd[i]
             ann["id"] = ann_id
             if "masks" in targets:
@@ -220,12 +220,14 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         return img, target
 
 
-def get_coco(root, image_set, transforms, mode="instances"):
+def get_coco(root, image_set, transforms, mode="instances", is_filtered=None):
     anno_file_template = "{}_{}2017.json"
+    if is_filtered:
+        anno_file_template = "{}_{}_filtered2017.json"
+
     PATHS = {
         "train": ("train2017", os.path.join("annotations", anno_file_template.format(mode, "train"))),
         "val": ("val2017", os.path.join("annotations", anno_file_template.format(mode, "val"))),
-        # "train": ("val2017", os.path.join("annotations", anno_file_template.format(mode, "val")))
     }
 
     t = [ConvertCocoPolysToMask()]
@@ -246,7 +248,6 @@ def get_coco(root, image_set, transforms, mode="instances"):
     # dataset = torch.utils.data.Subset(dataset, [i for i in range(500)])
 
     return dataset
-
 
 def get_coco_kp(root, image_set, transforms):
     return get_coco(root, image_set, transforms, mode="person_keypoints")
